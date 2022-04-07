@@ -1,7 +1,5 @@
 # Pushup Counter App
 
-<a href="https://youtu.be/pm2mGmgwSZo"><img src="images/demo-video.png"></a>
-
 ## Install
 
 This package requires Python >= 3.7. Install all dependencies using requirements file:
