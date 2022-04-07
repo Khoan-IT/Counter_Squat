@@ -37,7 +37,7 @@ class KeypointBasedCounter:
         new_data_point = 0
         if len(points) > 0:
             # new_data_point = cv2.contourArea(np.array(points).astype(np.float32))
-            new_data_point = points[3][1]
+            new_data_point = points[1]
         if new_data_point > self.max_value:
             self.max_value = new_data_point
 

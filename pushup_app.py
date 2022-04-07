@@ -33,11 +33,12 @@ def keypoint_thread(video_grabber, keypoint_detector, keypoints_arr):
             frame = video_grabber.get_frame()
             points = keypoint_detector.detect_keypoints(frame)
             points = np.array(points)
+            print(points)
             if config.USE_TRACKER:
                 tracker.update(frame, points[:, :2])
-            visibility = np.logical_and(points[:, 0] > 0, points[:, 1] > 0)
+            visibility = np.logical_and(points[0] > 0, points[1] > 0)
             keypoint_lock.acquire()
-            keypoints_arr[0] = points[:, :2]
+            keypoints_arr[0] = points
             keypoints_arr[1] = visibility
             keypoint_lock.release()
 keypoint_t = threading.Thread(target=keypoint_thread, args=(video_grabber, keypoint_detector, keypoints_arr))
@@ -72,9 +73,8 @@ while True:
         points = tracker.predict(video_frame)
 
     points = np.array(points).astype(int).tolist()
-    for point in points:
-        x, y = tuple(point)
-        draw = cv2.circle(video_frame, (x, y), 4, (0, 255, 0), -1)
+    if len(points) !=0:
+        draw = cv2.circle(video_frame, (points[0], points[1]), 4, (0, 255, 0), -1)
 
     # Update counter
     pushup_counter.update_points(points)
