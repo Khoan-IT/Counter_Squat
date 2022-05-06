@@ -23,7 +23,7 @@ tracker = KeypointTracker()
 keypoints_arr = [[], []]
 keypoint_lock = Lock()
 is_pushup_score = 0.0
-
+count = 0
 
 # Keypoint detection thread
 def keypoint_thread(video_grabber, keypoint_detector, keypoints_arr):
@@ -53,6 +53,8 @@ def action_recognition_thread(video_grabber):
         if video_grabber is not None:
             frame = video_grabber.get_frame()
             is_pushup_score, _  = pushup_recognizer.update_frame(frame, return_raw_score=True)
+
+
 action_recognition_t = threading.Thread(target=action_recognition_thread, args=(video_grabber,))
 action_recognition_t.daemon = True
 action_recognition_t.start()
@@ -78,17 +80,21 @@ while True:
 
     # Update counter
     pushup_counter.update_points(points)
-    is_pushup = is_pushup_score > config.PUSHUP_THRESH
-    pushup_counter.set_counting(is_pushup)
+    try:
+        is_pushup = is_pushup_score[0][0] > config.PUSHUP_THRESH
+        count += int(is_pushup)
+        print((is_pushup_score[0][0]))
+        pushup_counter.set_counting(is_pushup)
+    except: pass
 
     # Draw frame
     video_frame = visualize_keypoints(video_frame, points, visibility=visibility, edges=[[0,1,2,3,4,5,6]],
         point_color=(0,0,255), text_color=(0,255,0))
     text = "Pushing {}".format(is_pushup_score)
     color = (0, 255, 0)
-    if not is_pushup:
-        text = "Not Pushing {}".format(is_pushup_score)
-        color = (0, 0, 255)
+    #if not is_pushup:
+        #text = "Not Pushing {}".format(is_pushup_score)
+        #color = (0, 0, 255)
     cv2.putText(video_frame, text, (100, 100), cv2.FONT_HERSHEY_SIMPLEX,  
                 0.5, color, 1, cv2.LINE_AA) 
     ui_drawer.set_frame(video_frame)
@@ -110,4 +116,5 @@ while True:
         keypoint_lock.release()
         pushup_counter.reset()
     elif k == ord("q"):
+        print(count)
         exit(0)
