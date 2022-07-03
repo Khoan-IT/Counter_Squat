@@ -32,8 +32,9 @@ class PushUpRecognizer():
         frame = cv2.resize(frame, dsize=(224, 224))
         frame = np.expand_dims(frame, axis=0)
         frame = self.preprocess_images(frame)
-
-        self.current_score_raw = self.model.predict(frame)
+        score = self.model.predict(frame)
+        #print(score)
+        self.current_score_raw = score[0][0]
         self.current_score = self.filter.updateEstimate(self.last_score_raw)
         self.last_score_raw = self.current_score_raw
 

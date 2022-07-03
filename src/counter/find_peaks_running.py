@@ -25,6 +25,7 @@ class RealtimePeakDetector():
             self.signal.append(0)
             return 0
         if i<self.lag:
+
             self.filteredY.append(signal.lfilter(self.filterParam, 1.0, self.y)[-1])
             self.avg.append(np.mean(self.filteredY))
             self.std.append(np.std(self.filteredY))
@@ -32,8 +33,9 @@ class RealtimePeakDetector():
             return 0
 
         self.filteredY.append(signal.lfilter(self.filterParam, 1.0, self.y)[-1])
-
-        if (self.filteredY[i] - self.avg[i-1]) > self.threshold*self.std[i-1]:
+        # std = 50 if self.std[i-1] < 50 else self.std[i-1]
+        std = 60
+        if (self.filteredY[i] - self.avg[i-1]) > self.threshold*std:
             self.signal.append(1)
         else:
             self.signal.append(0)

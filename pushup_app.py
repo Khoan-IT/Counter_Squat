@@ -33,12 +33,11 @@ def keypoint_thread(video_grabber, keypoint_detector, keypoints_arr):
             frame = video_grabber.get_frame()
             points = keypoint_detector.detect_keypoints(frame)
             points = np.array(points)
-            print(points)
             if config.USE_TRACKER:
                 tracker.update(frame, points[:, :2])
-            visibility = np.logical_and(points[0] > 0, points[1] > 0)
+            visibility = np.logical_and(points[:, 0] > 0, points[:, 1] > 0)
             keypoint_lock.acquire()
-            keypoints_arr[0] = points
+            keypoints_arr[0] = points[:, :2]
             keypoints_arr[1] = visibility
             keypoint_lock.release()
 keypoint_t = threading.Thread(target=keypoint_thread, args=(video_grabber, keypoint_detector, keypoints_arr))
@@ -63,8 +62,10 @@ cv2.namedWindow("PushUp App", cv2.WINDOW_NORMAL)
 
 
 # Main loop
+pre_score = 1
+count_frame = 0
 while True:
-    
+    count_frame += 1
     video_frame = video_grabber.get_frame()
     keypoint_lock.acquire()
     points, visibility = keypoints_arr
@@ -73,13 +74,26 @@ while True:
         points = tracker.predict(video_frame)
 
     points = np.array(points).astype(int).tolist()
-    if len(points) !=0:
-        draw = cv2.circle(video_frame, (points[0], points[1]), 4, (0, 255, 0), -1)
+    for point in points:
+        x, y = tuple(point)
+        draw = cv2.circle(video_frame, (x, y), 4, (0, 255, 0), -1)
 
     # Update counter
     pushup_counter.update_points(points)
-    is_pushup = is_pushup_score > config.PUSHUP_THRESH
+    peak = pushup_counter.get_peak_value()
+    is_pushup = is_pushup_score > config.PUSHUP_THRESH and pre_score < 0.4
+    # print(is_pushup_score, pre_score, is_pushup)
+
+    if is_pushup and is_pushup_score < 0.5:
+        pre_score = 1
+    if is_pushup_score < 0.4 and peak:
+        pre_score = is_pushup_score
+
     pushup_counter.set_counting(is_pushup)
+
+    # if count_frame % config.NUMFRAME == 0:
+    #     pre_score = is_pushup_score
+    #     count_frame = 0
 
     # Draw frame
     video_frame = visualize_keypoints(video_frame, points, visibility=visibility, edges=[[0,1,2,3,4,5,6]],
@@ -89,8 +103,8 @@ while True:
     if not is_pushup:
         text = "Not Pushing {}".format(is_pushup_score)
         color = (0, 0, 255)
-    cv2.putText(video_frame, text, (100, 100), cv2.FONT_HERSHEY_SIMPLEX,  
-                0.5, color, 1, cv2.LINE_AA) 
+    cv2.putText(video_frame, text, (100, 100), cv2.FONT_HERSHEY_SIMPLEX,
+                0.5, color, 1, cv2.LINE_AA)
     ui_drawer.set_frame(video_frame)
     draw = ui_drawer.render()
 

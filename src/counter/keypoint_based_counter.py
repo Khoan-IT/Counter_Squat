@@ -22,7 +22,7 @@ class KeypointBasedCounter:
         self.magnitude_seq = [0] * max_seq_len
         self.max_seq_len = max_seq_len
         self.peaks = [0] * max_seq_len
-        self.rt_peak_finder = RealtimePeakDetector(60, 10, 0.1)
+        self.rt_peak_finder = RealtimePeakDetector(60, 10, 1)
         self.prev_peak_value = 0
         self.debug_lock = Lock()
 
@@ -33,11 +33,14 @@ class KeypointBasedCounter:
         self.counting = True
 
     def update_points(self, points):
-
+        # print(points)
         new_data_point = 0
         if len(points) > 0:
             # new_data_point = cv2.contourArea(np.array(points).astype(np.float32))
-            new_data_point = points[1]
+            # print((points[3][1]+1)/(points[2][1]+1))
+            if (points[3][1]+1)/(points[2][1]+1) > 0.9:
+                return
+            new_data_point = points[3][1]
         if new_data_point > self.max_value:
             self.max_value = new_data_point
 
@@ -75,6 +78,7 @@ class KeypointBasedCounter:
     def increase_count(self):
         if self.counting:
             self.count += 1
+            print(self.count)
 
     def set_counting(self, counting):
         self.counting = counting
@@ -89,3 +93,6 @@ class KeypointBasedCounter:
         img = cv2.resize(img, self.img_size)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         return img
+
+    def get_peak_value(self):
+        return self.prev_peak_value

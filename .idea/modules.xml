@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Counter_Squat.iml" filepath="$PROJECT_DIR$/.idea/Counter_Squat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/pushup-counter-app.iml" filepath="$PROJECT_DIR$/.idea/pushup-counter-app.iml" />
     </modules>
   </component>
 </project>
